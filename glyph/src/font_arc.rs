@@ -1,4 +1,4 @@
-use crate::{Font, FontRef, FontVec, GlyphId, InvalidFont, Outline};
+use crate::{Font, FontRef, FontVec, GlyphId, InvalidFont, Outline, color::ColorLayer};
 use alloc::sync::Arc;
 use core::fmt;
 
@@ -119,6 +119,11 @@ impl Font for FontArc {
     #[inline]
     fn kern_unscaled(&self, first: GlyphId, second: GlyphId) -> f32 {
         self.0.kern_unscaled(first, second)
+    }
+
+    #[inline]
+    fn color_layers(&self, glyph: GlyphId) -> Option<Vec<ColorLayer>> {
+        self.0.color_layers(glyph)
     }
 
     #[inline]

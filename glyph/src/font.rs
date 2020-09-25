@@ -1,4 +1,4 @@
-use crate::{point, Glyph, GlyphId, Outline, OutlinedGlyph, PxScale, PxScaleFont, Rect, ScaleFont};
+use crate::{point, Glyph, GlyphId, Outline, OutlinedGlyph, PxScale, PxScaleFont, Rect, ScaleFont, color::ColorLayer};
 
 /// Functionality required from font data.
 ///
@@ -97,6 +97,8 @@ pub trait Font {
     ///
     /// Scaling can be done with [as_scaled](trait.Font.html#method.as_scaled).
     fn kern_unscaled(&self, first: GlyphId, second: GlyphId) -> f32;
+
+    fn color_layers(&self, id: GlyphId) -> Option<Vec<ColorLayer>>;
 
     /// Compute unscaled glyph outline curves & bounding box.
     fn outline(&self, id: GlyphId) -> Option<Outline>;
@@ -222,6 +224,11 @@ impl<F: Font> Font for &F {
     #[inline]
     fn kern_unscaled(&self, first: GlyphId, second: GlyphId) -> f32 {
         (*self).kern_unscaled(first, second)
+    }
+
+    #[inline]
+    fn color_layers(&self, glyph: GlyphId) -> Option<Vec<ColorLayer>> {
+        (*self).color_layers(glyph)
     }
 
     #[inline]

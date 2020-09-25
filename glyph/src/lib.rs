@@ -31,6 +31,7 @@ mod nostd_float;
 mod outlined;
 mod scale;
 mod ttfp;
+pub mod color;
 
 #[cfg(feature = "std")]
 pub use crate::font_arc::*;

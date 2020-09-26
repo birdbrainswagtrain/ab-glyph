@@ -36,6 +36,39 @@ impl Outline {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct OutlineGroup {
+    group: Vec<(Outline,u32)>,
+    is_colored: bool
+}
+
+impl OutlineGroup {
+    pub fn from_outline(outline: Outline) -> Self {
+        OutlineGroup{
+            group: vec!((outline,0xFFFFFFFF)),
+            is_colored: false
+        }
+    }
+
+    pub fn new(group: Vec<(Outline,u32)>) -> Self {
+        OutlineGroup{
+            group,
+            is_colored: true
+        }
+    }
+
+    fn px_bounds(&self, scale_factor: PxScaleFactor, position: Point) -> Rect {
+        let mut iter = self.group.iter().map(|a| a.0.px_bounds(scale_factor, position));
+        let init = iter.next().unwrap();
+        iter.fold(init,|a,b| {
+            Rect{
+                min: point(a.min.x.min(b.min.x), a.min.y.min(b.min.y)),
+                max: point(a.max.x.max(b.max.x), a.max.y.max(b.max.y)),
+            } 
+        })
+    }
+}
+
 /// A glyph that has been outlined at a scale & position.
 #[derive(Clone, Debug)]
 pub struct OutlinedGlyph {
@@ -45,14 +78,14 @@ pub struct OutlinedGlyph {
     // Scale factor
     scale_factor: PxScaleFactor,
     // Raw outline
-    outline: Outline,
+    outline: OutlineGroup,
 }
 
 impl OutlinedGlyph {
     /// Constructs an `OutlinedGlyph` from the source `Glyph`, pixel bounds
     /// & relatively positioned outline curves.
     #[inline]
-    pub fn new(glyph: Glyph, outline: Outline, scale_factor: PxScaleFactor) -> Self {
+    pub fn new(glyph: Glyph, outline: OutlineGroup, scale_factor: PxScaleFactor) -> Self {
         // work this out now as it'll usually be used more than once
         let px_bounds = outline.px_bounds(scale_factor, glyph.position);
 
@@ -60,7 +93,7 @@ impl OutlinedGlyph {
             glyph,
             px_bounds,
             scale_factor,
-            outline,
+            outline
         }
     }
 
@@ -82,12 +115,20 @@ impl OutlinedGlyph {
         self.px_bounds
     }
 
+    pub fn get_colored_layers(&self) -> Option<usize> {
+        if self.outline.is_colored { Some(self.outline.group.len()) } else { None }
+    }
+
+    pub fn get_color(&self, layer: usize) -> u32 {
+        self.outline.group[layer].1
+    }
+
     /// Draw this glyph outline using a pixel & coverage handling function.
     ///
     /// The callback will be called for each `(x, y)` pixel coordinate inside the bounds
     /// with a coverage value in the range `[0.0, 1.0]` indicating how much the glyph covered
     /// that pixel.
-    pub fn draw<O: FnMut(u32, u32, f32)>(&self, o: O) {
+    pub fn draw<O: FnMut(u32, u32, f32)>(&self, layer: usize, o: O) {
         use ab_glyph_rasterizer::Rasterizer;
         let h_factor = self.scale_factor.horizontal;
         let v_factor = -self.scale_factor.vertical;
@@ -99,7 +140,7 @@ impl OutlinedGlyph {
 
         let scale_up = |&Point { x, y }| point(x * h_factor, y * v_factor);
 
-        self.outline
+        self.outline.group[layer].0
             .curves
             .iter()
             .fold(Rasterizer::new(w, h), |mut rasterizer, curve| match curve {

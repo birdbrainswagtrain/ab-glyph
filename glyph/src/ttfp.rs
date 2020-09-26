@@ -1,7 +1,7 @@
 //! ttf-parser crate specific code. ttf-parser types should not be leaked publicly.
 mod outliner;
 
-use crate::{point, Font, GlyphId, InvalidFont, Outline, Rect, color::ColorLayer};
+use crate::{point, Font, GlyphId, InvalidFont, Outline, Rect};
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 use core::fmt;
@@ -176,9 +176,9 @@ macro_rules! impl_font {
 
                 let id = GlyphId(index);
 
-                if let Some(layers) = self.color_layers(id) {
+                /*if let Some(layers) = self.color_layers(id) {
                     return layers[0].id;
-                }
+                }*/
                 
                 id
             }
@@ -234,19 +234,16 @@ macro_rules! impl_font {
                     .unwrap_or_default()
             }
 
-            fn color_layers(&self, id: GlyphId) -> Option<Vec<ColorLayer>> {
+            fn color_outlines(&self, id: GlyphId) -> Option<Vec<(Outline,u32)>> {
                 let face = self.0.as_face_ref();
                 face
                     .colr_layers(id.into())
                     .map(|iter| iter.map(|layer| {
                         let color = face.cpal_color(0, layer.palette_index).unwrap();
-                        ColorLayer{
-                            id: GlyphId(layer.glyph_id),
-                            r: color.r,
-                            g: color.g,
-                            b: color.b,
-                            a: color.a
-                        }
+                        let color_int = u32::from_be_bytes([color.r,color.g,color.b,color.a]);
+                        let outline = self.outline(GlyphId(layer.glyph_id)).unwrap();
+
+                        (outline,color_int)
                     }).collect())
             }
 

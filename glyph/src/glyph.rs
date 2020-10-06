@@ -37,6 +37,7 @@ impl GlyphId {
             id: self,
             scale: scale.into(),
             position: position.into(),
+            is_colored: false
         }
     }
 
@@ -63,4 +64,5 @@ pub struct Glyph {
     pub scale: PxScale,
     /// Position of this glyph.
     pub position: Point,
+    pub is_colored: bool
 }

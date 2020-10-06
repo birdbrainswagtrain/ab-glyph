@@ -122,6 +122,16 @@ impl Font for FontArc {
     }
 
     #[inline]
+    fn relative_scale(&self, glyph: GlyphId) -> f32 {
+        self.0.relative_scale(glyph)
+    }
+
+    #[inline]
+    fn has_color(&self, glyph: GlyphId) -> bool {
+        self.0.has_color(glyph)
+    }
+
+    #[inline]
     fn color_outlines(&self, glyph: GlyphId) -> Option<Vec<(Outline,u32)>> {
         self.0.color_outlines(glyph)
     }

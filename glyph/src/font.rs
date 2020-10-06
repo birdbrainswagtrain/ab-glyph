@@ -98,7 +98,11 @@ pub trait Font {
     /// Scaling can be done with [as_scaled](trait.Font.html#method.as_scaled).
     fn kern_unscaled(&self, first: GlyphId, second: GlyphId) -> f32;
 
+    fn has_color(&self, id: GlyphId) -> bool;
+
     fn color_outlines(&self, id: GlyphId) -> Option<Vec<(Outline,u32)>>;
+
+    fn relative_scale(&self, id: GlyphId) -> f32;
 
     /// Compute unscaled glyph outline curves & bounding box.
     fn outline(&self, id: GlyphId) -> Option<Outline>;
@@ -229,6 +233,16 @@ impl<F: Font> Font for &F {
     #[inline]
     fn kern_unscaled(&self, first: GlyphId, second: GlyphId) -> f32 {
         (*self).kern_unscaled(first, second)
+    }
+
+    #[inline]
+    fn relative_scale(&self, glyph: GlyphId) -> f32 {
+        (*self).relative_scale(glyph)
+    }
+
+    #[inline]
+    fn has_color(&self, glyph: GlyphId) -> bool {
+        (*self).has_color(glyph)
     }
 
     #[inline]

@@ -138,13 +138,23 @@ pub trait ScaleFont<F: Font> {
     /// ```
     #[inline]
     fn scaled_glyph(&self, c: char) -> Glyph {
-        self.font().glyph_id(c).with_scale(self.scale())
+        let font = self.font();
+        let glyph_id = font.glyph_id(c);
+        let relative = font.relative_scale(glyph_id);
+        let mut scale = self.scale();
+        scale.x *= relative;
+        scale.y *= relative;
+        let mut glyph = glyph_id.with_scale(scale);
+        glyph.is_colored = font.has_color(glyph_id);
+        glyph
     }
 
     /// Pixel scaled horizontal advance for a given glyph.
     #[inline]
     fn h_advance(&self, id: GlyphId) -> f32 {
-        self.h_scale_factor() * self.font().h_advance_unscaled(id)
+        let font = self.font();
+        let relative = font.relative_scale(id);
+        self.h_scale_factor() * font.h_advance_unscaled(id) * relative
     }
 
     /// Pixel scaled horizontal side bearing for a given glyph.

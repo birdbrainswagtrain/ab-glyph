@@ -234,6 +234,17 @@ macro_rules! impl_font {
                     .unwrap_or_default()
             }
 
+            #[inline]
+            fn relative_scale(&self, _glyph: GlyphId) -> f32 {
+                1.0
+            }
+
+            #[inline]
+            fn has_color(&self, id: GlyphId) -> bool {
+                let face = self.0.as_face_ref();
+                face.colr_layers(id.into()).is_some()
+            }
+
             fn color_outlines(&self, id: GlyphId) -> Option<Vec<(Outline,u32)>> {
                 let face = self.0.as_face_ref();
                 face
